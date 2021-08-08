@@ -1,0 +1,127 @@
+
+<!doctype html> 
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>This is a Webview page</title>
+  
+    <script>
+      // If the page is not loaded in a Webview then load the Segment analytics.js library 
+      if(typeof segment_webview === "undefined" || typeof webkit === "undefined"){
+        
+        // this code is the Segment analytics.js library. We will only load it if the webpage is not loaded inside a Webview
+        !function(){var analytics=window.analytics=window.analytics||[];if(!analytics.initialize)if(analytics.invoked)window.console&&console.error&&console.error("Segment snippet included twice.");else{analytics.invoked=!0;analytics.methods=["trackSubmit","trackClick","trackLink","trackForm","pageview","identify","reset","group","track","ready","alias","debug","page","once","off","on"];analytics.factory=function(t){return function(){var e=Array.prototype.slice.call(arguments);e.unshift(t);analytics.push(e);return analytics}};for(var t=0;t<analytics.methods.length;t++){var e=analytics.methods[t];analytics[e]=analytics.factory(e)}analytics.load=function(t,e){var n=document.createElement("script");n.type="text/javascript";n.async=!0;n.src="https://cdn.segment.com/analytics.js/v1/"+t+"/analytics.min.js";var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(n,a);analytics._loadOptions=e};analytics.SNIPPET_VERSION="4.1.0";
+        analytics.load("f0mkFrd38lR8LW97t73odW9VkiQP532m");
+        }}();
+      
+      }
+    </script>
+  
+</head>
+<body>
+  <p>This is a HTML page</p>
+  
+  <div id="main">
+   <button id="recordTrackEvent" onclick="recordTrackEvent('Product Clicked', {product_id:'123', product_namne: 'Optimus Prime'})"> Record Track Event</button> <br/>
+   <button id="recordIdentifyEvent" onclick="recordIdentifyEvent('userId_0001', {first_name:'Joe', email: 'joe@gmail.com', num_products_purchased:12})"> Record Identify Event</button> <br/>
+   <button id="recordPageEvent" onclick="recordPageEvent('Homepage', {page_category:'Jeans', url: 'https://github.com/joe-ayoub-segment/joe-ayoub-segment.github.io/edit/master/webview2.html', path:'/joe-ayoub-segment/joe-ayoub-segment.github.io/edit/master/webview2.html'})"> Record Page Event</button>
+  </div>
+  
+  <div id="messages"></div>
+
+  <script type="text/javascript">
+   function recordTrackEvent(eventName, eventParams){ 
+       console.log(window.webkit)
+     // if the page is executing in a webview then stringify the parameters and call the webview track() event
+     if(typeof segment_webview !== "undefined"){
+      // parameters sent to the Nativa app must be stringified
+      eventParams = JSON.stringify(eventParams);
+      // call the native app version of the track call
+      segment_webview.track(eventName, eventParams)
+       
+      // write a line to the page indicating that a Segment Android SDK track event was fired
+      logToPage("track", "Android SDK"); 
+       
+     // if the page is not executing in a webview then call the regular analytics.js track() event
+     } else if (typeof webkit !== "undefined") {
+        eventParams = JSON.stringify(eventParams);
+        webkit.messageHandlers.event.postMessage(eventName, eventParams)
+        logToPage("track", "iOS SDK"); 
+     } else {
+       
+      // call the Segment analytics.js version of the track call
+      analytics.track(eventName, eventParams); 
+       
+      // write a line to the page indicating that an analytics.js track event was fired
+      logToPage("track", "analytics.js"); 
+     }
+  }
+  
+  function recordIdentifyEvent(userId, eventParams){
+     
+     // if the page is executing in a webview then stringify the parameters and call the webview identify() event
+     if(typeof segment_webview !== "undefined"){
+      // parameters sent to the Native app must be stringified
+      eventParams = JSON.stringify(eventParams);
+      // call the native app version of the track call
+      // Note: do not include the userId in the native app identify call if the native app already has a userId.
+      segment_webview.identify(eventParams)
+       
+      // write a line to the page indicating that a Segment Android SDK track event was fired
+      logToPage("identify", "Android SDK"); 
+       
+     // if the page is not executing in a webview then call the regular analytics.js track() event
+    } else if (typeof webkit !== "undefined") {
+        eventParams = JSON.stringify(eventParams);
+        webkit.messageHandlers.event.postMessage(eventName, eventParams)
+        logToPage("track", "iOS SDK"); 
+     } else {
+       
+      // call the Segment analytics.js version of the track call. 
+      // Note: include the userId in the analytics.js identify call. 
+      analytics.identify(userId, eventParams); 
+       
+      // write a line to the page indicating that an analytics.js track event was fired
+      logToPage("identify", "analytics.js"); 
+     }
+  }  
+    
+  function recordPageEvent(pageName, eventParams){
+     
+     // if the page is executing in a webview then stringify the parameters and call the webview screen() event
+     if(typeof segment_webview !== "undefined"){
+      // parameters sent to the Nativa app must be stringified
+      eventParams = JSON.stringify(eventParams);
+      // call the native app version of the track call
+      segment_webview.screen(pageName, eventParams)
+       
+      // write a line to the page indicating that a Segment Android SDK track event was fired
+      logToPage("screen", "Android SDK"); 
+       
+     // if the page is not executing in a webview then call the regular analytics.js track() event
+    } else if (typeof webkit !== "undefined") {
+        eventParams = JSON.stringify(eventParams);
+        webkit.messageHandlers.event.postMessage(eventName, eventParams)
+        logToPage("track", "iOS SDK"); 
+     } else {
+       
+      // call the Segment analytics.js version of the track call
+      analytics.page(pageName, eventParams); 
+       
+      // write a line to the page indicating that an analytics.js track event was fired
+      logToPage("page", "analytics.js"); 
+     }
+  }  
+    
+  // this function just displays a notice every time an event is fired, and indicates if the event was from analytics.js or Android SDK 
+  function logToPage(eventType, platform){
+      var node = document.createElement("p");                 
+      var textnode = document.createTextNode(`${platform} - ${eventType} event fired`);         
+      node.appendChild(textnode);                              
+      document.getElementById("messages").appendChild(node); 
+  }  
+  </script>
+</body>
+</html>
